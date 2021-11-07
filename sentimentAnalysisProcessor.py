@@ -6,10 +6,11 @@ import nltk
 
 nltk.download('vader_lexicon')
 
-consumer_key = "HhggF0UYL0UT9lxGc0FA5akMk"
-consumer_secret = "32Oc2yV5qPRJtoG3mOcAIs2KHBOIpMY5VueqBhpVXrGvaBn4GO"
-access_token = "1432530918032482310-A4iQvZbrcDs96oiLpJ2L7bdyaioZ6Y"
-access_token_secret = "sqpgVhphGM6a2juQL2yAo50I8V4ZF7bBrgo7aWhIngPlK"
+#Removing the secrets
+consumer_key = "#################"
+consumer_secret = "###############"
+access_token = "###############"
+access_token_secret = "###############"
 
 
 class scraping:
@@ -17,7 +18,7 @@ class scraping:
         self.auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
         self.auth.set_access_token(access_token, access_token_secret)
         self.api = tweepy.API(self.auth, wait_on_rate_limit=True)
-        self.TwitterClient=tweepy.Client(bearer_token="AAAAAAAAAAAAAAAAAAAAAEG0TgEAAAAAatuaMPjd6D7YMUMsW7SKrrEViYg%3DEunhlvaHunj6zkYxzZAABhqsQtThR74am7zHnNruLNmhcqVSKF", wait_on_rate_limit=True)
+        self.TwitterClient=tweepy.Client(bearer_token="###############", wait_on_rate_limit=True)
 
     def tweetScraper(self, tweet_count,keyword_value,tweet_lang):
         return tweepy.Cursor(self.api.search_tweets,q=keyword_value+" -filter:retweets",lang=tweet_lang,count=tweet_count,tweet_mode='extended').items(tweet_count)
