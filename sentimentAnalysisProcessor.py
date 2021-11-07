@@ -1,17 +1,7 @@
 import tweepy
-import json
-import os
-import pandas as pd
-import re
 from textblob import TextBlob
 
-from wordcloud import WordCloud, STOPWORDS
-from PIL import Image
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from langdetect import detect
-from nltk.stem import SnowballStemmer
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from sklearn.feature_extraction.text import CountVectorizer
 import nltk
 
 nltk.download('vader_lexicon')
@@ -47,46 +37,50 @@ class scraping:
     def recent_tweets(self, userid, cnt):
         return self.api.user_timeline(screen_name=userid, count=cnt, include_rts = False, tweet_mode = 'extended')
 
+
 def percentage(part,whole):
+    if whole == 0:
+        return 0
     return 100 * float(part)/float(whole)
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-path = dir_path + "\\keyword.json"
-with open(path,encoding="utf-8") as json_file:
-    data = json.load(json_file)
+
+def maximum(a, b, c):
+    if (a > b) and (a > c):
+        largest = a
+        strr = "positive"
+    elif (b > a) and (b > c):
+        largest = b
+        strr = "negative"
+    else:
+        largest = c
+        strr = "neutral"
+    return strr, largest
 
 
-keyword_dir=f"keyword_cryptocurrency_en"
-if not os.path.exists(keyword_dir):
-    os.makedirs(keyword_dir)
-    print("Created Directory : ", keyword_dir)
+def tweetAnalyse(screenName, tweetCount):
+    handle_name = screenName
+    count_tweets = tweetCount
+    reply_list = []
+    key_list = []
+    positive = 0
+    negative = 0
+    neutral = 0
+    polarity = 0
+    tweet_list = []
+    neutral_list = []
+    negative_list = []
+    positive_list = []
+    noOfTweet = 0
+    scrap_tweet = scraping()
 
-handle_name = "elonmusk"
-count_tweets = 40
-tweet_list = []
-reply_list = []
-key_list = []
-positive = 0
-negative = 0
-neutral = 0
-polarity = 0
-tweet_list = []
-neutral_list = []
-negative_list = []
-positive_list = []
-noOfTweet = 0
-scrap_tweet = scraping()
 
-for keys in data["crypto"]:
-    #raw_tweets = scrap_tweet.tweetScraper(10, keys, "en")
     raw_tweets = scrap_tweet.recent_tweets(handle_name, count_tweets)
     for tweet in raw_tweets:
-        noOfTweet = 0
         tweet_txt = tweet._json['full_text']
         tweet_list.append(tweet_txt)
         analysis = TextBlob(tweet_txt)
 
-        replies=scrap_tweet.replyScraper(tweet._json['id_str'],30)
+        replies=scrap_tweet.replyScraper(tweet._json['id_str'], 30)
         for reply in replies:
             noOfTweet += 1
             key_list.append(handle_name)
@@ -94,34 +88,31 @@ for keys in data["crypto"]:
             reply_list.append(reply_txt)
             score = SentimentIntensityAnalyzer().polarity_scores(reply_txt)
             neg = score['neg']
-            neu = score['neu']
+            # neu = score['neu']
             pos = score['pos']
-            comp = score['compound']
+            # comp = score['compound']
             polarity += analysis.sentiment.polarity
-            
+
             if neg > pos:
                 negative_list.append(reply_txt)
                 negative += 1
             elif pos > neg:
                 positive_list.append(reply_txt)
                 positive += 1
-            
+
             elif pos == neg:
                 neutral_list.append(reply_txt)
                 neutral += 1
 
-positive = percentage(positive, noOfTweet)
-negative = percentage(negative, noOfTweet)
-neutral = percentage(neutral, noOfTweet)
-polarity = percentage(polarity, noOfTweet)
-positive = format(positive, '.1f')
-negative = format(negative, '.1f')
-neutral = format(neutral, '.1f')
-
-df = pd.DataFrame({'keyword': key_list, 'tweets': reply_list})
-df.to_csv(keyword_dir+'\\keyword_cryptocurrency_en.csv', index=False)
-
-print("total number: ",len(reply_list))
-print("positive number: ",len(positive_list))
-print("negative number: ", len(negative_list))
-print("neutral number: ",len(neutral_list))
+    positive = percentage(positive, noOfTweet)
+    negative = percentage(negative, noOfTweet)
+    neutral = percentage(neutral, noOfTweet)
+    positive = format(positive, '.1f')
+    negative = format(negative, '.1f')
+    neutral = format(neutral, '.1f')
+    strr, value = maximum(positive,negative,neutral)
+    if strr == 'neutral':
+        message = "There is neutral reaction to @"+handle_name+"'s latest "+count_tweets+" tweets."
+    else:
+        message = "There is a "+value+"% of "+strr+" reactions to @"+handle_name+"'s latest "+count_tweets+" tweets."
+    return message
